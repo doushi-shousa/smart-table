@@ -7,13 +7,15 @@
  */
 
 // Вспомогательная функция для проверки, является ли значение пустым
-// Подробнее: пустыми значениями в JavaScript считаются undefined, null, 
+// Подробнее: пустыми значениями в JavaScript считаются undefined, null,
 // пустая строка и NaN (Not-a-Number)
 const isEmpty = (value) => {
-    return value === undefined ||
+    return (
+        value === undefined ||
         value === null ||
-        value === '' ||
-        (typeof value === 'number' && isNaN(value));
+        value === "" ||
+        (typeof value === "number" && isNaN(value))
+    );
 };
 
 /**
@@ -29,9 +31,13 @@ const rules = {
     // содержит поля, которых нет в исходном объекте
     skipNonExistentSourceFields: (source) => (key, sourceValue, targetValue) => {
         if (!Object.prototype.hasOwnProperty.call(source, key)) {
-            return { skip: true };
+            return {
+                skip: true
+            };
         }
-        return { skip: false };
+        return {
+            skip: false
+        };
     },
 
     // Пропускать пустые значения в целевом объекте
@@ -39,9 +45,13 @@ const rules = {
     // которые не заполнены в форме поиска или фильтре
     skipEmptyTargetValues: () => (key, sourceValue, targetValue) => {
         if (isEmpty(targetValue)) {
-            return { skip: true };
+            return {
+                skip: true
+            };
         }
-        return { skip: false };
+        return {
+            skip: false
+        };
     },
 
     // Возвращать неудачу, если исходное значение пусто, а целевое нет
@@ -49,9 +59,13 @@ const rules = {
     // требующие непустых значений
     failOnEmptySource: () => (key, sourceValue, targetValue) => {
         if (isEmpty(sourceValue)) {
-            return { result: false };
+            return {
+                result: false
+            };
         }
-        return { continue: true };
+        return {
+            continue: true
+        };
     },
 
     // Обрабатывать массив как диапазон [от, до]
@@ -63,133 +77,183 @@ const rules = {
                 const [from, to] = targetValue;
 
                 if (!isEmpty(from) && sourceValue < from) {
-                    return { result: false };
+                    return {
+                        result: false
+                    };
                 }
                 if (!isEmpty(to) && sourceValue > to) {
-                    return { result: false };
+                    return {
+                        result: false
+                    };
                 }
-                return { result: true };
+                return {
+                    result: true
+                };
             }
-            return { result: false };
+            return {
+                result: false
+            };
         }
-        return { continue: true };
+        return {
+            continue: true
+        };
     },
 
     // Сравнение на включение подстроки
     // Подробнее: проверяет, содержит ли строка другую строку
     // без учёта регистра. Удобно для поиска по тексту.
     stringIncludes: () => (key, sourceValue, targetValue) => {
-        if (typeof sourceValue === 'string' && typeof targetValue === 'string') {
-            return { result: sourceValue.includes(targetValue) };
+        if (typeof sourceValue === "string" && typeof targetValue === "string") {
+            return {
+                result: sourceValue.includes(targetValue)
+            };
         }
-        return { continue: true };
+        return {
+            continue: true
+        };
     },
 
     // Сравнение на включение подстроки без учета регистра
     // Подробнее: аналогично предыдущему, но игнорирует
     // различия между заглавными и строчными буквами
     caseInsensitiveStringIncludes: () => (key, sourceValue, targetValue) => {
-        if (typeof sourceValue === 'string' && typeof targetValue === 'string') {
-            return { result: sourceValue.toLowerCase().includes(targetValue.toLowerCase()) };
+        if (typeof sourceValue === "string" && typeof targetValue === "string") {
+            return {
+                result: sourceValue.toLowerCase().includes(targetValue.toLowerCase()),
+            };
         }
-        return { continue: true };
+        return {
+            continue: true
+        };
     },
 
     // Точное совпадение строк
     // Подробнее: в отличие от включения проверяет полное совпадение строк,
     // что полезно для строгих сравнений, например паролей или кодов
     stringExactMatch: () => (key, sourceValue, targetValue) => {
-        if (typeof sourceValue === 'string' && typeof targetValue === 'string') {
-            return { result: sourceValue === targetValue };
+        if (typeof sourceValue === "string" && typeof targetValue === "string") {
+            return {
+                result: sourceValue === targetValue
+            };
         }
-        return { continue: true };
+        return {
+            continue: true
+        };
     },
 
     // Сравнение на точное равенство значений
     // Подробнее: использует оператор === для строгого сравнения,
     // учитывающего как значение, так и тип данных
     exactEquality: () => (key, sourceValue, targetValue) => {
-        return { result: sourceValue === targetValue };
+        return {
+            result: sourceValue === targetValue
+        };
     },
 
     // Глубокое сравнение объектов
     // Подробнее: сравнивает вложенные объекты, преобразуя их в JSON
     // и сравнивая результаты. Подходит для сложных структур данных.
     deepEquality: () => (key, sourceValue, targetValue) => {
-        if (typeof sourceValue === 'object' && sourceValue !== null &&
-            typeof targetValue === 'object' && targetValue !== null) {
+        if (
+            typeof sourceValue === "object" &&
+            sourceValue !== null &&
+            typeof targetValue === "object" &&
+            targetValue !== null
+        ) {
             try {
-                return { result: JSON.stringify(sourceValue) === JSON.stringify(targetValue) };
+                return {
+                    result: JSON.stringify(sourceValue) === JSON.stringify(targetValue),
+                };
             } catch (e) {
-                return { result: false };
+                return {
+                    result: false
+                };
             }
         }
-        return { continue: true };
+        return {
+            continue: true
+        };
     },
 
     // Сравнение чисел с допуском погрешности
     // Подробнее: полезно при работе с дробными числами,
     // так как из-за особенностей хранения чисел с плавающей точкой
     // они могут иметь небольшие расхождения
-    numericTolerance: (tolerance = 0.001) => (key, sourceValue, targetValue) => {
-        if (typeof sourceValue === 'number' && typeof targetValue === 'number') {
-            return { result: Math.abs(sourceValue - targetValue) <= tolerance };
-        }
-        return { continue: true };
-    },
+    numericTolerance: (tolerance = 0.001) =>
+        (key, sourceValue, targetValue) => {
+            if (typeof sourceValue === "number" && typeof targetValue === "number") {
+                return {
+                    result: Math.abs(sourceValue - targetValue) <= tolerance
+                };
+            }
+            return {
+                continue: true
+            };
+        },
 
     // Поиск по нескольким полям с указанным значением целевого поля
     // searchKey: Ключ в целевом объекте, содержащий поисковый запрос
     // searchFields: Массив имен полей в исходном объекте для поиска
     // caseSensitive: Учитывать ли регистр при поиске (по умолчанию: false)
-    // 
+    //
     // Подробнее: это продвинутое правило, которое позволяет искать
     // одну и ту же строку в нескольких полях объекта, что очень полезно
     // для реализации функций поиска в приложениях
-    searchMultipleFields: (searchKey, searchFields, caseSensitive = false) => (key, sourceValue, targetValue, source, target) => {
-        // Применять это правило только при обработке ключа поиска
-        if (key !== searchKey) {
-            return { continue: true };
-        }
+    searchMultipleFields: (searchKey, searchFields, caseSensitive = false) =>
+        (key, sourceValue, targetValue, source, target) => {
+            // Применять это правило только при обработке ключа поиска
+            if (key !== searchKey) {
+                return {
+                    continue: true
+                };
+            }
 
-        // Пропустить, если поисковый запрос пуст
-        if (isEmpty(targetValue)) {
-            return { skip: true };
-        }
+            // Пропустить, если поисковый запрос пуст
+            if (isEmpty(targetValue)) {
+                return {
+                    skip: true
+                };
+            }
 
-        // Убедиться, что поисковый запрос это строка
-        const searchTerm = String(targetValue);
+            // Убедиться, что поисковый запрос это строка
+            const searchTerm = String(targetValue);
 
-        // Проверить, содержит ли какое-либо из указанных полей исходного объекта поисковый запрос
-        for (const field of searchFields) {
-            if (Object.prototype.hasOwnProperty.call(source, field)) {
-                const fieldValue = source[field];
+            // Проверить, содержит ли какое-либо из указанных полей исходного объекта поисковый запрос
+            for (const field of searchFields) {
+                if (Object.prototype.hasOwnProperty.call(source, field)) {
+                    const fieldValue = source[field];
 
-                // Пропустить пустые поля исходного объекта
-                if (isEmpty(fieldValue)) {
-                    continue;
-                }
+                    // Пропустить пустые поля исходного объекта
+                    if (isEmpty(fieldValue)) {
+                        continue;
+                    }
 
-                // Преобразовать в строку, если еще не строка
-                const sourceFieldValue = String(fieldValue);
+                    // Преобразовать в строку, если еще не строка
+                    const sourceFieldValue = String(fieldValue);
 
-                // Выполнить поиск с учетом опции чувствительности к регистру
-                let found = false;
-                if (caseSensitive) {
-                    found = sourceFieldValue.includes(searchTerm);
-                } else {
-                    found = sourceFieldValue.toLowerCase().includes(searchTerm.toLowerCase());
-                }
+                    // Выполнить поиск с учетом опции чувствительности к регистру
+                    let found = false;
+                    if (caseSensitive) {
+                        found = sourceFieldValue.includes(searchTerm);
+                    } else {
+                        found = sourceFieldValue
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase());
+                    }
 
-                if (found) {
-                    return { result: true };
+                    if (found) {
+                        return {
+                            result: true
+                        };
+                    }
                 }
             }
-        }
 
-        // Совпадений не найдено ни в одном поле
-        return { result: false };
-    }
+            // Совпадений не найдено ни в одном поле
+            return {
+                result: false
+            };
+        },
 };
 
 /**
@@ -199,12 +263,12 @@ const rules = {
  * как отправную точку, но вы всегда можете настроить свой собственный набор
  */
 const defaultRules = [
-    'skipNonExistentSourceFields',
-    'skipEmptyTargetValues',
-    'failOnEmptySource',
-    'arrayAsRange',
-    'stringIncludes',
-    'exactEquality'
+    "skipNonExistentSourceFields",
+    "skipEmptyTargetValues",
+    "failOnEmptySource",
+    "arrayAsRange",
+    "stringIncludes",
+    "exactEquality",
 ];
 
 /**
@@ -221,14 +285,19 @@ const defaultRules = [
 function compare(source, target, rulesList) {
     // Если любой из входных параметров не является объектом, возвращаем false
     // Подробнее: это защитный код, предотвращающий ошибки при работе с некорректными данными
-    if (!source || typeof source !== 'object' || !target || typeof target !== 'object') {
+    if (
+        !source ||
+        typeof source !== "object" ||
+        !target ||
+        typeof target !== "object"
+    ) {
         return false;
     }
 
     // Правила должны быть предоставлены
     // Подробнее: проверка входных параметров - хорошая практика программирования
     if (!Array.isArray(rulesList) || rulesList.length === 0) {
-        throw new Error('Rules list is required for comparison');
+        throw new Error("Rules list is required for comparison");
     }
 
     // Проверяем каждое свойство в целевом объекте
@@ -251,7 +320,7 @@ function compare(source, target, rulesList) {
                 }
 
                 // Проверяем, есть ли у нас окончательный результат
-                if (ruleOutput.hasOwnProperty('result')) {
+                if (ruleOutput.hasOwnProperty("result")) {
                     ruleResult = ruleOutput.result;
                     break;
                 }
@@ -293,14 +362,14 @@ function compare(source, target, rulesList) {
 function createComparison(ruleNames, customRules = []) {
     return (source, target) => {
         const rulesList = [
-            ...ruleNames.map(ruleName => {
+            ...ruleNames.map((ruleName) => {
                 // Для правил, которым нужны параметры
-                if (ruleName === 'skipNonExistentSourceFields') {
+                if (ruleName === "skipNonExistentSourceFields") {
                     return rules[ruleName](source);
                 }
                 return rules[ruleName]();
             }),
-            ...customRules
+            ...customRules,
         ];
 
         return compare(source, target, rulesList);

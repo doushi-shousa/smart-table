@@ -50,10 +50,13 @@
 
 /* Base & Reset */
 * {
-    margin: 0; padding: 0; box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     font-family: var(--font-family), serif;
     font-weight: 400;
-    font-style: normal; font-stretch: normal;
+    font-style: normal;
+    font-stretch: normal;
 }
 
 body {
@@ -87,12 +90,29 @@ main {
 }
 
 /* Icon types */
-.search-icon { background-image: url("./assets/search.svg"); }
-.reset-icon { background-image: url("./assets/stop.svg"); }
-.chevrons-left { background-image: url("./assets/chevrons-left.svg"); }
-.chevrons-right { background-image: url("./assets/chevrons-right.svg"); }
-.left { background-image: url("./assets/left.svg"); }
-.right { background-image: url("./assets/right.svg"); }
+.search-icon {
+    background-image: url("./assets/search.svg");
+}
+
+.reset-icon {
+    background-image: url("./assets/stop.svg");
+}
+
+.chevrons-left {
+    background-image: url("./assets/chevrons-left.svg");
+}
+
+.chevrons-right {
+    background-image: url("./assets/chevrons-right.svg");
+}
+
+.left {
+    background-image: url("./assets/left.svg");
+}
+
+.right {
+    background-image: url("./assets/right.svg");
+}
 
 /* Interactive elements */
 button.icon {
@@ -109,7 +129,8 @@ button.icon:hover,
 }
 
 /* Input & Button styles */
-.input, .button {
+.input,
+.button {
     height: var(--size-input-height);
     font-size: var(--font-size);
     line-height: var(--line-height);
@@ -373,10 +394,21 @@ button.icon:hover,
     color: var(--color-text-dark);
 }
 
-.badge.red { background-color: var(--color-badge-red); }
-.badge.yellow { background-color: var(--color-badge-yellow); }
-.badge.green { background-color: var(--color-badge-green); }
-.badge.blue { background-color: var(--color-badge-blue); }
+.badge.red {
+    background-color: var(--color-badge-red);
+}
+
+.badge.yellow {
+    background-color: var(--color-badge-yellow);
+}
+
+.badge.green {
+    background-color: var(--color-badge-green);
+}
+
+.badge.blue {
+    background-color: var(--color-badge-blue);
+}
 
 /* Pagination */
 .pagination-container {
@@ -459,7 +491,8 @@ button.icon:hover,
         align-items: stretch;
     }
 
-    .search-bar .search-wrapper, .search-bar .input {
+    .search-bar .search-wrapper,
+    .search-bar .input {
         width: 100%;
         max-width: 100%;
     }

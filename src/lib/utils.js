@@ -18,15 +18,17 @@ export function cloneTemplate(templateId) {
 
     // Находим все элементы с атрибутом data-name и создаем объект,
     // где ключами являются значения data-name, а значениями - сами элементы
-    const elements = Array.from(clone.querySelectorAll('[data-name]')).reduce((acc, el) => {
-        acc[el.dataset.name] = el;
-        return acc;
-    }, {});
+    const elements = Array.from(clone.querySelectorAll("[data-name]")).reduce(
+        (acc, el) => {
+            acc[el.dataset.name] = el;
+            return acc;
+        }, {}
+    );
 
     // Возвращаем объект с контейнером (клоном шаблона) и именованными элементами
     return {
         container: clone,
-        elements: elements
+        elements: elements,
     };
 }
 
@@ -66,10 +68,13 @@ export function processFormData(formData) {
  * объекты по их уникальному идентификатору с вычислительной сложностью O(1)
  * вместо O(n) при переборе массива.
  */
-export const makeIndex = (arr, field, val) => arr.reduce((acc, cur) => ({
-    ...acc,  // Копируем все уже накопленные значения
-    [cur[field]]: val(cur)  // Добавляем новое поле с именем из cur[field] и значением из val(cur)
-}), {});
+export const makeIndex = (arr, field, val) =>
+    arr.reduce(
+        (acc, cur) => ({
+            ...acc, // Копируем все уже накопленные значения
+            [cur[field]]: val(cur), // Добавляем новое поле с именем из cur[field] и значением из val(cur)
+        }), {}
+    );
 
 /**
  * Возвращает массив номеров страниц, центрированный вокруг текущей страницы
@@ -91,17 +96,17 @@ export const makeIndex = (arr, field, val) => arr.reduce((acc, cur) => ({
  */
 export function getPages(currentPage, maxPage, limit) {
     // Проверяем, что входные данные являются корректными числами
-    currentPage = Math.max(1, Math.min(maxPage, currentPage));  // currentPage должен быть от 1 до maxPage
-    limit = Math.min(maxPage, limit);  // limit не должен превышать maxPage
+    currentPage = Math.max(1, Math.min(maxPage, currentPage)); // currentPage должен быть от 1 до maxPage
+    limit = Math.min(maxPage, limit); // limit не должен превышать maxPage
 
     // Вычисляем диапазон страниц для отображения
-    let start = Math.max(1, currentPage - Math.floor(limit / 2));  // Начинаем с currentPage минус половина лимита
-    let end = start + limit - 1;  // Заканчиваем через limit страниц после start
+    let start = Math.max(1, currentPage - Math.floor(limit / 2)); // Начинаем с currentPage минус половина лимита
+    let end = start + limit - 1; // Заканчиваем через limit страниц после start
 
     // Корректируем, если мы близко к концу
     if (end > maxPage) {
-        end = maxPage;  // Не выходим за пределы максимальной страницы
-        start = Math.max(1, end - limit + 1);  // Пересчитываем начало
+        end = maxPage; // Не выходим за пределы максимальной страницы
+        start = Math.max(1, end - limit + 1); // Пересчитываем начало
     }
 
     // Создаем массив номеров страниц
