@@ -1,20 +1,42 @@
 import { getPages } from "../lib/utils.js";
 
+/**
+ * Инициализация пагинации.
+ *
+ * @param {Object} elements - ссылки на DOM-элементы пагинатора
+ * @param {HTMLElement} elements.pages - контейнер для кнопок страниц
+ * @param {HTMLElement} elements.fromRow - узел для вывода номера первой строки
+ * @param {HTMLElement} elements.toRow - узел для вывода номера последней строки
+ * @param {HTMLElement} elements.totalRows - узел для вывода общего количества строк
+ * @param {Function} createPage - фабрика разметки для одной кнопки страницы
+ * @returns {{ applyPagination: Function, updatePagination: Function }}
+ */
 export const initPagination = (
   { pages, fromRow, toRow, totalRows },
   createPage
 ) => {
-  //подготовить шаблон кнопки для страницы и очистить контейнер
-  const pageTemplate = pages.firstElementChild.cloneNode(true); // в качестве шаблона берём первый элемент из контейнера со страницами
-  pages.firstElementChild.remove(); // и удаляем его (предполагаем, что там больше ничего, как вариант, можно и всё удалить из pages)
+  // Берём первый дочерний элемент как шаблон кнопки страницы и очищаем контейнер
+  const pageTemplate = pages.firstElementChild.cloneNode(true);
+  pages.firstElementChild.remove();
 
+  // Храним количество страниц, чтобы корректно обрабатывать next/last
   let pageCount;
 
+  /**
+   * Собирает параметры пагинации (limit/page) в query-объект.
+   * Вызывается ДО запроса на сервер.
+   *
+   * @param {Object} query - текущие query-параметры
+   * @param {Object} state - состояние формы (rowsPerPage, page и т.п.)
+   * @param {HTMLElement?} action - элемент, вызвавший действие (prev/next/first/last)
+   * @returns {Object} новый query c { limit, page }
+   */
   const applyPagination = (query, state, action) => {
     const limit = state.rowsPerPage;
     let page = state.page;
 
-    if (action)
+    // Обрабатываем «кнопочные» события пагинации.
+    if (action) {
       switch (action.name) {
         case "prev":
           page = Math.max(1, page - 1);
@@ -29,30 +51,36 @@ export const initPagination = (
           page = pageCount;
           break;
       }
+    }
 
-    return Object.assign({}, query, {
-      // добавим параметры к query, но не изменяем исходный объект
-      limit,
-      page,
-    });
+    // Возвращаем новый объект (не мутируем исходный query)
+    return Object.assign({}, query, { limit, page });
   };
 
+  /**
+   * Перерисовывает UI пагинации на основе ответа сервера.
+   * Вызывается ПОСЛЕ получения { total, items }.
+   *
+   * @param {number} total - общее количество строк (с учётом фильтров/поиска)
+   * @param {{page:number, limit:number}} params - текущая страница и лимит
+   */
   const updatePagination = (total, { page, limit }) => {
+    // 1) Пересчитываем количество страниц
     pageCount = Math.ceil(total / limit);
-    // получить список видимых страниц и вывести их
-    const visiblePages = getPages(page, pageCount, 5); // Получим массив страниц, которые нужно показать, выводим только 5 страниц
+
+    // 2) Строим список видимых кнопок страниц (например, максимум 5)
+    const visiblePages = getPages(page, pageCount, 5);
     pages.replaceChildren(
       ...visiblePages.map((pageNumber) => {
-        // перебираем их и создаём для них кнопку
-        const el = pageTemplate.cloneNode(true); // клонируем шаблон, который запомнили ранее
-        return createPage(el, pageNumber, pageNumber === page); // вызываем колбэк из настроек, чтобы заполнить кнопку данными
+        const el = pageTemplate.cloneNode(true);
+        return createPage(el, pageNumber, pageNumber === page);
       })
     );
 
-    // обновить статус пагинации
-    fromRow.textContent = (page - 1) * limit + 1; // С какой строки выводим
-    toRow.textContent = Math.min(page * limit, total); // До какой строки выводим, если это последняя страница, то отображаем оставшееся количество
-    totalRows.textContent = total; // Сколько всего строк выводим на всех страницах вместе (после фильтрации будет меньше)
+    // 3) Обновляем текстовые индикаторы диапазона и общего числа строк
+    fromRow.textContent = (page - 1) * limit + 1;      // первый элемент на текущей странице
+    toRow.textContent = Math.min(page * limit, total); // последний элемент (учитывая последнюю страницу)
+    totalRows.textContent = total;                     // всего найдено строк
   };
 
   return {
